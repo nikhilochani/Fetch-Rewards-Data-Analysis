@@ -1,5 +1,42 @@
-# **Data Preprocessing: Cleaning the Products Table**
+# **Data Preprocessing**
 
+## **Step 1: Creating Staging Tables**
+
+To ensure a structured approach to data cleaning, we first create staging tables. These tables allow for data transformations, ensuring consistency and integrity before finalizing the cleaned dataset for analysis.
+
+```sql
+
+Create Table temp_users (
+    id Varchar PRIMARY KEY, --All unique records
+    Created_date Timestamp NOT NULL,
+    birth_date Timestamp,
+    state Varchar, --Only two characters. Varchar(2) and Varchar take up the same amount of storage.
+    language Varchar,
+    gender Varchar 
+);
+
+Create Table temp_products (
+    category_1 Varchar,
+    category_2 Varchar,
+    category_3 Varchar,
+    category_4 Varchar,
+    manufacturer Varchar,
+    brand Varchar,
+    barcode Bigint --Integer out of range. Hence, using Bigint
+);
+
+Create Table temp_transactions (
+    receipt_id Varchar,
+    purchase_date Timestamp,
+    scan_date Timestamp,
+    store_name Varchar,
+    user_id Varchar,
+    barcode Bigint,
+    final_quantity Varchar,
+    final_sale Varchar
+);
+commit;
+```
 ## **Objective**
 The objective of this preprocessing step is to ensure data integrity in the `products` table by identifying and resolving missing values, handling duplicates, and standardizing the dataset for further analysis.
 
@@ -74,18 +111,21 @@ COMMIT;
 To ensure uniqueness, we create a new cleaned table containing only distinct product records.
 
 ```sql
-CREATE TABLE products_cleaned (
-    category_1 VARCHAR,
-    category_2 VARCHAR,
-    category_3 VARCHAR,
-    category_4 VARCHAR,
-    manufacturer VARCHAR,
-    brand VARCHAR,
-    barcode BIGINT -- Integer out of range, using BIGINT
+Create table products_cleaned (
+    category_1 Varchar,
+    category_2 Varchar,
+    category_3 Varchar,
+    category_4 Varchar,
+    manufacturer Varchar,
+    brand Varchar,
+    barcode Bigint
 );
 
-INSERT INTO products_cleaned
-SELECT DISTINCT * FROM temp_products;
+Insert into products_cleaned
+Select distinct *
+from temp_products;
+
+Commit;
 ```
 
 ---
