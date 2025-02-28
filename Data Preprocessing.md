@@ -1,5 +1,16 @@
 # **Data Preprocessing**
 
+## Index
+1. [Introduction](#introduction)
+1. [Creating Staging Tables](#step-1-creating-staging-tables)
+3. [Step 2: Cleaning Each Table](#step-2-cleaning-each-table)
+   - [Users Table](#users-table)
+   - [Products Table](#products-table)
+   - [Transactions Table](#transactions-table)
+4. [Step 3: Inserting and Mapping Across Tables](#step-3-inserting-and-mapping-across-tables)
+5. [Step 4: Final Cleaned Tables and ER Diagram](#step-4-final-cleaned-tables-and-er-diagram)
+
+
 ## **Step 1: Creating Staging Tables**
 
 To ensure a structured approach to data cleaning, we first create staging tables. These tables allow for data transformations, ensuring consistency and integrity before finalizing the cleaned dataset for analysis.
@@ -37,11 +48,13 @@ Create Table temp_transactions (
 );
 commit;
 ```
-## **Objective**
-The objective of this preprocessing step is to ensure data integrity in the `products` table by identifying and resolving missing values, handling duplicates, and standardizing the dataset for further analysis.
+
+![temp_tables](https://github.com/nikhilochani/Fetch/blob/main/temp_tables.png?raw=true)
 
 ---
 
+
+## Products table
 ## **1. Identifying Data Quality Issues**
 ### **Assessing Missing Values**
 To evaluate the extent of missing data in key fields, we perform an initial analysis:
