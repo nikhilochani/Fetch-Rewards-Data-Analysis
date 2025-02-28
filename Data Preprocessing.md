@@ -55,7 +55,115 @@ commit;
 
 ## Step 2: Handling Missing Values and Deduplication for Each Table
 
+### Users Table
 
+To evaluate the extent of missing data in key fields, we perform an initial analysis:
+
+```sql
+SELECT 
+    count(*) as total_rows,
+    sum(Case when id is null or id='' then 1 else 0 end) || '' as id,
+    sum(Case when created_date is null then 1 else 0 end) || '' as created_date,
+    sum(Case when birth_date is null then 1 else 0 end) || '' as birth_date,
+    sum(Case when state is null or state='' then 1 else 0 end) || '' as state,
+    sum(Case when language is null or language='' then 1 else 0 end) || '' as language,
+    sum(Case when gender is null or gender=''  then 1 else 0 end) || '' as gender
+FROM temp_users
+UNION ALL
+SELECT 
+    count(*)*100.00/count(*) as total_rows,
+    round(sum(Case when id is null or id='' then 1 else 0 end)*100.00/count(*)) || '%' as id,
+    round(sum(Case when created_date is null then 1 else 0 end)*100.00/count(*))|| '%' as created_date,
+    round(sum(Case when birth_date is null then 1 else 0 end)*100.00/count(*)) || '%' as birth_date,
+    round(sum(Case when state is null or state='' then 1 else 0 end)*100.00/count(*)) || '%' as state,
+    round(sum(Case when language is null or language='' then 1 else 0 end)*100.00/count(*)) || '%' as language,
+    round(sum(Case when gender is null or gender=''  then 1 else 0 end)*100.00/count(*)) || '%' as gender
+FROM temp_users;
+```
+
+| total_rows | id | created_date | birth_date | state | language | gender |
+|------------|------------|------------|------------|------------|------------|------------|
+| 100000     | 0          | 0          | 3675      | 4812      | 30508      | 5892      |
+| 100%       | 0.00%      | 0.00%      | 4.00%      | 5.00%      | 31.00%      | 6.00%    |
+
+#### Findings and Cleaning Strategy:
+- ***birth_date***: 4% missing values, a new column ***age*** will be created, and ***birth_date*** will be reformatted.
+- ***gender***: 6% missing values. Nulls and inconsistent values will be standardized into:
+  - ***male***
+  - ***female***
+  - ***transgender***
+  - ***non_binary*** (mapping "Non-Binary")
+  - ***not_listed*** (mapping "My gender isn't listed")
+  - ***prefer_not_to_say*** (mapping "Prefer not to say")
+  - ***unknown*** (mapping "not_specified", nulls)
+- ***state*** and ***language***: Null and empty values will be replaced with ***Unknown***.
+
+##### Adding Age and Reformatted Birth Date Column
+```sql
+Alter table temp_users add column age int;
+Alter table temp_users add column birth_date_updated date;
+```
+
+##### Cleaning and Standardizing Columns
+```sql
+Update temp_users
+Set birth_date_updated=date(birth_date),
+	age=extract(year from (age(current_date,date(birth_date)))),
+	gender=case 
+				when lower(trim(gender))='female' then 'female'
+				when lower(trim(gender))='male' then 'male'
+				when lower(trim(gender))='transgender' then 'transgender'
+				when lower(trim(gender))='non_binary' or lower(trim(gender))='non-binary' then 'non_binary'
+				when lower(trim(gender))='prefer_not_to_say' or lower(trim(gender)) like 'prefer not to say' then 'prefer_not_to_say'
+				when lower(trim(gender))='not_listed' or lower(trim(gender)) like '%listed' then 'not_specified'
+				when lower(trim(gender))='unknown' or lower(trim(gender))='not_specified' or gender is null or gender='' then 'unknown'
+			end,
+	state=case
+			when trim(state)='' or state is null then 'Unknown'
+			else trim(state)
+		  end,
+	language=case 
+				when language='' then 'Unknown'
+				else trim(language)
+			end;
+
+commit;
+```
+
+##### Creating Cleaned Users Table
+```sql
+Create Table users_cleaned (
+    id Varchar PRIMARY KEY,
+    created_date Timestamp NOT NULL,
+    birth_date date,
+    state Varchar,
+    language Varchar,
+    gender Varchar,
+    age int
+);
+commit;
+```
+
+##### Inserting Cleaned Data
+```sql
+Insert into users_cleaned
+Select 
+	id as id,
+	created_date as created_date,
+	birth_date_updated as birth_date,
+	state as state,
+	language as language,
+	gender as gender,
+	age as age
+from temp_users;
+commit;
+```
+
+##### Final State of Users Table
+- ***age*** column added.  
+- ***gender*** categories standardized.  
+- ***state*** and ***language*** null values replaced with 'Unknown'.  
+- New ***users_cleaned*** table created.
 
 ### Products Table
 
