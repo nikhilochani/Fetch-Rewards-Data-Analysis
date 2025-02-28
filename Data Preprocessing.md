@@ -55,8 +55,9 @@ commit;
 
 ## Step 2: Handling Missing Values and Deduplication for Each Table
 
+<details>
 ### Users Table
-
+</details>
 To evaluate the extent of missing data in key fields, we perform an initial analysis:
 
 ```sql
