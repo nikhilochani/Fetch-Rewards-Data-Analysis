@@ -2,8 +2,8 @@
 
 ## Index
 1. [Introduction](#introduction)
-1. [Creating Staging Tables](#step-1-creating-staging-tables)
-3. [Step 2: Cleaning Each Table](#step-2-cleaning-each-table)
+1. [Step 1: Creating Staging Tables](#step-1-creating-staging-tables)
+3. [Step 2: Handling Missing Values and Deduplication for Each Table](#step-2-handling-missing-values-and-deduplication-for-each-table)
    - [Users Table](#users-table)
    - [Products Table](#products-table)
    - [Transactions Table](#transactions-table)
@@ -53,10 +53,11 @@ commit;
 
 ---
 
+## Step 2: Handling Missing Values and Deduplication for Each Table
 
-## Products table
-## **1. Identifying Data Quality Issues**
-### **Assessing Missing Values**
+### Products table
+#### **1. Identifying Data Quality Issues**
+##### **Assessing Missing Values**
 To evaluate the extent of missing data in key fields, we perform an initial analysis:
 
 ```sql
