@@ -56,7 +56,7 @@ commit;
 ## Step 2: Handling Missing Values and Deduplication for Each Table
 
 
-### Users Table
+> ### Users Table
 
 To evaluate the extent of missing data in key fields, we perform an initial analysis:
 
@@ -166,7 +166,7 @@ commit;
 - ***state*** and ***language*** null values replaced with 'Unknown'.  
 - New ***users_cleaned*** table created.
 
-### Products Table
+> ### Products Table
 
 To evaluate the extent of missing data in key fields, we perform an initial analysis:
 ```sql
