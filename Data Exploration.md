@@ -54,9 +54,23 @@ where u.id is null
 
 ### 3. Inconsistencies in Transaction Data
 
-There are multiple cases of conflicting values for final_quantity and final_sale, along with duplicate transactions and missing barcodes. A careful inspection of the data revealed these inconsistency patterns:
+#### Case 1: Potential Data Ingestion Issue  
 
-#### Case 1: Zero or Null final_quantity with Duplicate Pricing
+A subset of records shows the purchase_date occurring after the scan_date; however, in all such cases, the purchase_date is consistently set to midnight of the following day.
+```sql
+Select *
+from temp_transactions
+where purchase_date > scan_date
+```
+
+| receipt_id                              | purchase_date         | scan_date                | store_name               | user_id                   | barcode       | final_quantity | final_sale |
+|-----------------------------------------|----------------------|-------------------------|--------------------------|--------------------------|--------------|---------------|------------|
+| 008c1dcc-0f96-4b04-98c8-2a2bb63ef89d   | 2024-07-21 00:00:00  | 2024-07-20 19:54:23.133 | WALMART                  | 5dc24cdb682fcf1229d04bd6 | 681131157339 | zero          | 3.18       |
+| 04a320ed-2903-45e5-8fd7-6eaf08daef32   | 2024-06-29 00:00:00  | 2024-06-28 11:03:31.783 | DOLLAR GENERAL STORE     | 62855f67708670299a658035 | 49000024685  | zero          | 6.00       |
+| 05023b3d-5f83-47a7-a17c-8e8521d0bc94   | 2024-09-08 00:00:00  | 2024-09-07 22:22:29.903 | SHOP RITE                | 666a43c77c0469953bfd9ae0 | 64144041640  | 2.00          |            |
+
+There are multiple cases of conflicting values for final_quantity and final_sale, along with duplicate transactions and missing barcodes. A careful inspection of the data revealed these inconsistency patterns:
+#### Case 2: Zero or Null final_quantity with Duplicate Pricing
 
 Some transactions have multiple records with final_quantity = 'zero' and final_quantity = 1, yet both share the same price. This suggests redundancy in records.
 
@@ -66,7 +80,7 @@ Some transactions have multiple records with final_quantity = 'zero' and final_q
 | f26897a3-c07b-4279-b3d8-8b296c14c827   | 2024-08-13 00:00:00  | 2024-08-19 15:11:34.485 | PIGGLY WIGGLY  | 53ce6404e4b0459d949f33e9 | 41780047175 | zero          | 3.49       |
 | f26897a3-c07b-4279-b3d8-8b296c14c827   | 2024-08-13 00:00:00  | 2024-08-19 15:11:34.485 | PIGGLY WIGGLY  | 53ce6404e4b0459d949f33e9 | 41780047175 | 1.00          | 3.49       |
 
-#### Case 2: Missing final_sale Values
+#### Case 3: Missing final_sale Values
 
 Some transactions have identical final_quantity values, but one record is missing final_sale, which could lead to miscalculations in revenue analysis.
 
@@ -75,7 +89,7 @@ Some transactions have identical final_quantity values, but one record is missin
 | 276889aa-11ae-4ba2-ac26-7c54c9d8fc05   | 2024-08-11 00:00:00  | 2024-08-12 18:26:37.584 | PICK N SAVE | 548e5dfae4b096ae8875dfec | 781138710114 | 1.00          |             |
 | 276889aa-11ae-4ba2-ac26-7c54c9d8fc05   | 2024-08-11 00:00:00  | 2024-08-12 18:26:37.584 | PICK N SAVE | 548e5dfae4b096ae8875dfec | 781138710114 | 1.00          |             |
 
-#### Case 3: Null Barcodes
+#### Case 4: Null Barcodes
 
 Some transactions lack a barcode, making it impossible to link them to a product.
 
@@ -84,7 +98,7 @@ Some transactions lack a barcode, making it impossible to link them to a product
 | aa489952-e979-4b84-87d2-a2e6cf8a809b   | 2024-07-31 00:00:00  | 2024-08-01 08:13:40.935 | ALDI       | 56242219e4b07364e3e0bef4 |  Null       | zero          | 1.59       | 
 | aa489952-e979-4b84-87d2-a2e6cf8a809b   | 2024-07-31 00:00:00  | 2024-08-01 08:13:40.935 | ALDI       | 56242219e4b07364e3e0bef4 |      Null   | 1.00          | 1.59       | 
 
-#### Case 4: Duplicate Transactions
+#### Case 5: Duplicate Transactions
 
 Some transactions appear more than twice under the same receipt_id, raising concerns about duplicate records.
 | receipt_id                              | purchase_date         | scan_date                | store_name | user_id                   | barcode      | final_quantity | final_sale |
