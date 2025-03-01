@@ -56,7 +56,7 @@ commit;
 ## Step 2: Handling Missing Values and Deduplication for Each Table
 
 
-> ### Users Table
+> ## Users Table
 
 To evaluate the extent of missing data in key fields, we perform an initial analysis:
 
@@ -166,7 +166,7 @@ commit;
 - ***state*** and ***language*** null values replaced with 'Unknown'.  
 - New ***users_cleaned*** table created.
 
-> ### Products Table
+> ## Products Table
 
 To evaluate the extent of missing data in key fields, we perform an initial analysis:
 ```sql
@@ -243,14 +243,79 @@ from temp_products;
 
 Commit;
 ```
+#### Ensuring One-to-Many Relationship Between `products_cleaned` and `transactions_cleaned`  
+After initial cleaning, multiple records with the same barcode still exist in `products_cleaned`. To maintain a proper **one-to-many relationship** between `products_cleaned` and `transactions_cleaned`, a deduplication process is applied to retain only one distinct product record per barcode.  
+
+##### Deduplication Process  
+A ranking mechanism is used to determine the best record for each barcode based on the following criteria:  
+- Prioritize known brands and manufacturers** over placeholders (`Unknown`, `BRAND NOT KNOWN`, `PLACEHOLDER MANUFACTURER`).  
+- Minimize the number of unknown category fields**, ensuring more informative categorization.  
+- Random tie-breaking** for cases where all other factors are equal.
+
+```sql
+Create table products_deduped as
+With cte_category_counts as --This cte prepares results which would help prioritize ranking in the next cte and eventually pushing distinct records into the dedup table
+(
+	Select
+		barcode,
+		brand,
+		manufacturer,
+		category_1,
+		category_2,
+		category_3,
+		category_4,
+		(case when category_1 ='Unknown' then 1 else 0 end +
+		case when category_2 ='Unknown' then 1 else 0 end +
+		case when category_3 ='Unknown' then 1 else 0 end +
+		case when category_4 ='Unknown' then 1 else 0 end) as unknown_category_count, --count total number of unknowns
+		case when trim(brand) not in ('BRAND NOT KNOWN','Unknown') then 1 else 0 end as brand_priority, --assigning 1 for a known brand and 0 for placeholders
+		case when trim(manufacturer) not in ('PLACEHOLDER MANUFACTURER','Unknown') then 1 else 0 end as manufacturer_priority --assigning 1 for a known manufacturer and 0 for placeholders
+	from products_cleaned pc
+),
+cte_ranked_barcodes as
+(
+	Select  barcode,
+			brand,
+			manufacturer,
+			category_1,
+			category_2,
+			category_3,
+			category_4,
+			row_number() over(partition by barcode
+								order by brand_priority desc,manufacturer_priority desc,unknown_category_count,random()) as row_num
+			--If there's only one record for the barcode, then it autmatically gets assigned row_num=1
+			--If there are more than one records per barcode, then it prioritizes based on known brand,manufacturer and total number of known categories in that order
+			--Random for a tiebraker
+	from cte_category_counts						
+)
+Select  barcode,
+		brand,
+		manufacturer,
+		category_1,
+		category_2,
+		category_3,
+		category_4
+from cte_ranked_barcodes
+where row_num=1;
+
+commit;
+```
+##### Replacing Old Table with Deduplicated Version
+After deduplication, the previous products_cleaned table is dropped and replaced with the newly cleaned dataset.
+```sql
+drop table products_cleaned;
+Alter table products_deduped rename to products_cleaned;
+commit;
+```
+
 ##### Final State of Products Table
-- Missing barcode values removed  
-- 'Unknown' assigned to missing categories, manufacturer, and brand  
-- Duplicate records removed, ensuring data integrity
-- New Products_cleaned table created
+- Duplicate barcodes removed, ensuring a one-to-many relationship with transactions_cleaned.
+- More informative product records retained, prioritizing known brand and manufacturer details.
+- Fewer unknown category values, improving data accuracy for analysis.
+- Ensures integrity in downstream processes.
 
 
-> ### Transactions Table
+> ## Transactions Table
 
 The initial analysis revealed several data quality issues in the transactions table:
 
