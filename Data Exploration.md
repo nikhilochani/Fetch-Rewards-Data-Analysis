@@ -147,4 +147,4 @@ These data issues could impact analytical accuracy and require further investiga
 - User data is missing from transactions, raising concerns about whether user records are stored elsewhere.
 - Transaction inconsistencies (missing barcodes, duplicate entries, incorrect final quantities) suggest potential issues in data ingestion or scanning methods.
 
-Would it be possible to get access to documentation on how user records, transactions, and barcodes are processed? Additionally, clarification on how final_quantity is determined across product types would help refine the analysis.
+
