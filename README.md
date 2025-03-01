@@ -16,7 +16,7 @@ I’ve been reviewing our transactions, users, and product data and noticed a fe
 #### YOY User Acquisition Decline:
 Fetch’s year-over-year user acquisition grew strongly through 2020 but declined sharply in 2023 (-42%) and 2024 (-24%). Since transaction users don’t appear in the users table, the growth trend may be underestimated.    
 
-![Yoy_growth_chart](https://github.com/nikhilochani/Fetch/blob/main/Yoy_growth_chart.png?raw=true)
+![Yoy_growth_chart](Images/Yoy_growth_chart.png?raw=true)
 
 #### Additional Information:
 4. Would it be possible to get access to any documentation on how user records, transactions, and barcodes are processed?
