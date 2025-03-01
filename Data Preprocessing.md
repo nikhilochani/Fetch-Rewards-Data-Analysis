@@ -8,7 +8,7 @@
    - [Products Table](#products-table)
    - [Transactions Table](#transactions-table)
 4. [Step 3: Inserting and Mapping Across Tables](#step-3-inserting-and-mapping-across-tables)
-5. [Step 4: Final Cleaned Tables and ER Diagram](#step-4-final-cleaned-tables-and-er-diagram)
+5. [Step 4: Final Database Structure](#step-4-final-database-structure)
 
 
 ## **Step 1: Creating Staging Tables**
@@ -474,3 +474,10 @@ The cleaned transactions table contains 24,796 records, with:
 - Text values converted to proper numeric types
 - Zero-quantity items filtered out
 ---
+
+
+
+## **Step 4: Final Database Structure**
+
+Now that all tables have been cleaned and deduplicated, the final Entity Relationship Diagram (ERD) accurately represents the one-to-many relationships between users_cleaned, products_cleaned, and transactions_cleaned. This ensures data integrity and proper linkage for downstream analysis.
+![ER_diagram](Images/ER_diagram.png?raw=true)
