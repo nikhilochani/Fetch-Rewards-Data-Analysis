@@ -248,4 +248,164 @@ Commit;
 - 'Unknown' assigned to missing categories, manufacturer, and brand  
 - Duplicate records removed, ensuring data integrity
 - New Products_cleaned table created
+
+
+> ### Transactions Table
+
+The initial analysis revealed several data quality issues in the transactions table:
+
+```sql
+Select 
+    count(*) as total_rows,
+    Sum(case when receipt_id IS null or receipt_id='' then 1 else 0 end) || '' as receipt_id,
+	Sum(case when purchase_date IS null then 1 else 0 end) || '' as purchase_date,
+	Sum(case when scan_date IS null then 1 else 0 end) || '' as scan_date,
+	Sum(case when store_name IS null or store_name='' then 1 else 0 end) || '' as store_name,
+    Sum(case when user_id IS null or user_id='' then 1 else 0 end) || '' as user_id,
+    Sum(case when barcode IS null then 1 else 0 end) || '' as barcode,
+    Sum(case when final_quantity IS null or final_quantity=' '  then 1 else 0 end) || '' as final_quantity,
+    Sum(case when final_sale IS null or final_sale=' '  then 1 else 0 end) || '' as final_sale
+from temp_transactions 
+UNION ALL
+Select 
+    count(*)*100.00/count(*) as total_rows,
+    round(Sum(case when receipt_id IS null or receipt_id='' then 1 else 0 end)*100.00/count(*),2) || '%' as receipt_id,
+	round(Sum(case when purchase_date IS null then 1 else 0 end)*100.00/count(*),2) || '%' as purchase_date,
+	round(Sum(case when scan_date IS null then 1 else 0 end)*100.00/count(*),2) || '%' as scan_date,
+	round(Sum(case when store_name IS null or store_name='' then 1 else 0 end)*100.00/count(*),2) || '%' as store_name,
+    round(Sum(case when user_id IS null or user_id='' then 1 else 0 end)*100.00/count(*),2) || '%' as user_id,
+    round(Sum(case when barcode IS null then 1 else 0 end)*100.00/count(*),2) || '%' as barcode,
+    round(Sum(case when final_quantity IS null or final_quantity=' '  then 1 else 0 end)*100.00/count(*),2) || '%' as final_quantity,
+    round(Sum(case when final_sale IS null or final_sale=' '  then 1 else 0 end)*100.00/count(*),2) || '%' as final_sale
+from temp_transactions;
+```
+| total_rows | receipt_id | purchase_date | scan_date | store_name | user_id | barcode | final_quantity | final_sale |
+|------------|-----------|---------------|-----------|------------|---------|---------|---------------|------------|
+| 50,000     | 0         | 0             | 0         | 0          | 0       | 5,762   | 0             | 12,500     |
+| 100.00%    | 0.00%     | 0.00%         | 0.00%     | 0.00%      | 0.00%   | 11.52%  | 0.00%         | 25.00%     |
+
+#### Findings and Cleaning Strategy:
+
+- Duplicate Transactions: Some receipt items appear multiple times. The record with the highest final_quantity and final_sale for each transaction will be retained to ensure accuracy.
+- Missing Barcodes (11.52%): Barcodes are missing for 5,762 transactions, which can affect product tracking. Where applicable, a placeholder barcode will be generated using the format store_name_unknown_final_quantity.
+- Final Quantity Issues: A few records contain non-numeric values like "zero", preventing proper numerical analysis. These will be converted to 0.00, and the column will be cast as NUMERIC for consistency.
+- Final Sale (25% missing): About 12,500 transactions have a missing or blank final_sale. To maintain data integrity, these values will be set to 0.00.
+- Inconsistent Timestamps: In 94 cases, purchase_date is recorded after scan_date, but all follow a pattern where purchase_date is set to midnight of the following day. Since this appears to be a system-generated behavior rather than an actual data issue, no adjustments will be made at this stage.
+
+##### Adding Numeric Columns
+
+```sql
+Alter table temp_transactions Add column final_quantity_numeric numeric,
+							  Add column final_sale_numeric numeric;
+
+commit;
+```
+
+##### Converting Text Values to Numeric
+
+```sql
+Update temp_transactions 
+SET final_quantity_numeric=case 
+					when lower(trim(final_quantity))='zero' then 0.0
+					else cast(trim(final_quantity) as numeric)
+				end,
+	final_sale_numeric=case 
+					when final_sale is null or trim(final_sale)='' then 0.0
+					else cast(trim(final_sale) as numeric) 
+				end;
+commit;
+```
+
+##### Handling Missing Barcodes
+
+Added a string column for barcodes and created synthetic barcodes for missing values:
+
+```sql
+Alter table temp_transactions add column barcode_string varchar;
+commit;
+
+Update temp_transactions
+Set barcode_string =
+	case when barcode is not null then cast(barcode as varchar)
+		 when barcode is null and final_quantity_numeric > 0 then store_name || '_unknown_' || final_quantity_numeric
+	end
+
+commit;
+```
+
+##### Creating Clean Table Structure
+
+```sql
+Create Table transactions_cleaned (
+    receipt_id varchar,
+    purchase_date timestamp,
+    scan_date timestamp,
+    store_name varchar,
+    user_id varchar,
+    barcode varchar,
+    final_quantity numeric,
+    final_sale numeric
+);
+
+commit;
+```
+
+##### Handling Duplicate Records
+
+Identified duplicates and kept the records with maximum values:
+
+```sql
+With cte_duplicate_rows as --cte identifies records with duplicate values based on grouping by all columns except final_quantity_numeric and final_sale_numeric
+(
+	Select receipt_id,user_id,purchase_date,scan_date,barcode_string,store_name,count(*)
+	from temp_transactions
+	--where barcode is not null
+	group by receipt_id,user_id,purchase_date,scan_date,barcode_string,store_name
+	having count(*)>1
+)
+Insert into transactions_cleaned(receipt_id,user_id,purchase_date,scan_date,barcode,store_name,final_quantity,final_sale)
+Select
+	t.receipt_id,
+	t.user_id,
+	t.purchase_date,
+	t.scan_date,
+	t.barcode_string,
+	t.store_name,
+	max(t.final_quantity_numeric),
+	max(t.final_sale_numeric)
+from cte_duplicate_rows c
+join temp_transactions t on t.receipt_id=c.receipt_id and t.barcode_string=c.barcode_string
+group by receipt_id,user_id,purchase_date,scan_date,barcode_string,store_name,final_quantity_numeric;
+
+commit;
+```
+
+##### Processing Remaining Records
+
+Inserted remaining valid records with synthetic barcodes:
+
+```sql
+Insert into transactions_cleaned(receipt_id,user_id,purchase_date,scan_date,store_name,barcode,final_quantity,final_sale)
+Select 
+	t1.receipt_id,t1.user_id,t1.purchase_date,t1.scan_date,t1.store_name,
+	coalesce(cast(t1.barcode as varchar),max(t1.barcode_string)) as barcode, --Updates the only active barcode created
+	max(final_quantity_numeric) as final_quantity, --updates the max for final_quantity (avoiding zeros)
+	max(final_sale_numeric) as final_sale --Updates the max for final_sale
+from temp_transactions t1
+left join transactions_cleaned t2 on t1.receipt_id =t2.receipt_id
+and t1.user_id=t2.user_id and t1.barcode_string=t2.barcode
+where t2.receipt_id is null
+group by t1.receipt_id,t1.user_id,t1.purchase_date,t1.scan_date,t1.store_name,t1.barcode
+having max(final_quantity_numeric)>0 -- Avoiding records with final_quantity =0
+
+commit;
+```
+
+##### Final State of Transactions Table
+
+The cleaned transactions table contains 24,796 records, with:
+- All duplicate entries resolved
+- Null barcodes handled with synthetic identifiers where appropriate
+- Text values converted to proper numeric types
+- Zero-quantity items filtered out
 ---
