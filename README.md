@@ -2,7 +2,7 @@
 
 ### Sub: Data Quality Findings and Questions
 
-Hi [Stakeholder Name],
+Hi [Stakeholder's Name],
 
 I’ve been reviewing our transactions, users, and product data and noticed a few inconsistencies that may impact analysis. Below are some key findings, and I’d appreciate your insights on a few open questions.
 
@@ -14,7 +14,9 @@ I’ve been reviewing our transactions, users, and product data and noticed a fe
 3. **Transaction Data Issues:** A portion of the data contains missing barcodes, duplicate entries, and conflicting values for final_quantity and final_sale, making some records unusable. There are also transactions where purchase dates occur after scan dates, raising concerns about data capture accuracy. Could this indicate pipeline issues, scanning inconsistencies, or something else?
 
 #### YOY User Acquisition Decline:
-Fetch’s year-over-year user acquisition grew strongly through 2020 but declined sharply in 2023 (-42%) and 2024 (-24%). Since transaction users don’t appear in the users table, the growth trend may be underestimated.
+Fetch’s year-over-year user acquisition grew strongly through 2020 but declined sharply in 2023 (-42%) and 2024 (-24%). Since transaction users don’t appear in the users table, the growth trend may be underestimated.    
+
+![Yoy_growth_chart](https://github.com/nikhilochani/Fetch/blob/main/Yoy_growth_chart.png?raw=true)
 
 #### Additional Information:
 4. Would it be possible to get access to any documentation on how user records, transactions, and barcodes are processed?
