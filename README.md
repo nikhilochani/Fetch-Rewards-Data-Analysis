@@ -5,8 +5,8 @@ This repository contains the analysis and insights for the Fetch Rewards Data An
 ## Repository Structure
 
 ### 1. Data Exploration & Preprocessing
-- **[1. Exploration (Data Quality Check).md](./1.%20Exploration%20(Data%20Quality%20Check).md)** – Identifies data quality issues and inconsistencies.
-- **[1.1 Data Preprocessing.md](./1.1%20Data%20Preprocessing.md)** – Details the cleaning and preprocessing steps before analysis.
+- **[1.1 Exploration (Data Quality Check).md](./1.1%20Exploration%20(Data%20Quality%20Check).md)** – Identifies data quality issues and inconsistencies.
+- **[1.2 Data Preprocessing.md](./1.2%20Data%20Preprocessing.md)** – Details the cleaning and preprocessing steps before analysis.
 
 ### 2. SQL Queries & Analysis
 - **[2. SQL Queries.md](./2.%20SQL%20Queries.md)** – Contains the SQL queries used to answer the required questions.
