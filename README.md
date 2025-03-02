@@ -1,28 +1,20 @@
-# Email to stakeholder
+# Fetch Rewards Data Analysis
 
-### Sub: Data Quality Findings and Questions
+This repository contains the analysis and insights for the Fetch Rewards Data Analyst Take-Home Challenge. The structure follows a logical progression from data exploration to analysis and stakeholder communication.
 
-Hi [Stakeholder's Name],
+## Repository Structure
 
-I’ve been reviewing our transactions, users, and product data and noticed a few inconsistencies that may impact analysis. Below are some key findings, and I’d appreciate your insights on a few open questions.
+### 1. Data Exploration & Preprocessing
+- **[1. Exploration (Data Quality Check).md](./1.%20Exploration%20(Data%20Quality%20Check).md)** – Identifies data quality issues and inconsistencies.
+- **[1.1 Data Preprocessing.md](./1.1%20Data%20Preprocessing.md)** – Details the cleaning and preprocessing steps before analysis.
 
-#### Data Quality Concerns:
-1. **Missing Users in Transactions:** 99.48% of users in the transactions table are not present in the users table. Are these records stored elsewhere, or is there a known gap in data integration?
+### 2. SQL Queries & Analysis
+- **[2. SQL Queries.md](./2.%20SQL%20Queries.md)** – Contains the SQL queries used to answer the required questions.
 
-2. **Final Quantity Tracking:** Many transactions, particularly from grocery stores, have final_quantity values between 0 and 1, which suggests weight-based tracking. However, similar patterns also appear in non-grocery items like snacks, raising questions about standardization. How is final_quantity determined across different product types?
+### 3. Stakeholder Communication
+- **[3. Stakeholder Communication.md](./3.%20Stakeholder%20Communication.md)** – Summarizes key findings and trends for business stakeholders.
 
-3. **Transaction Data Issues:** A portion of the data contains missing barcodes, duplicate entries, and conflicting values for final_quantity and final_sale, making some records unusable. There are also transactions where purchase dates occur after scan dates, raising concerns about data capture accuracy. Could this indicate pipeline issues, scanning inconsistencies, or something else?
-
-#### YOY User Acquisition Decline:
-Fetch’s year-over-year user acquisition grew strongly through 2020 but declined sharply in 2023 (-42%) and 2024 (-24%). Since transaction users don’t appear in the users table, the growth trend may be underestimated.    
-
-![Yoy_growth_chart](Images/Yoy_growth_chart.png?raw=true)
-
-#### Additional Information:
-4. Would it be possible to get access to any documentation on how user records, transactions, and barcodes are processed?
-5. Lastly, is there a way to access revenue data to analyze YOY growth in terms of revenue?
-
-Let me know if you have any insights or if we should set up time to discuss. Looking forward to hearing from you.
-
-Best,  
-Nikhil
+## Supporting Files
+- **Tableau File:** `Fetch Rewards Data Analysis.twbx` – Contains visualizations supporting the analysis.
+- **SQL Queries Folder:** Includes raw SQL scripts.
+- **Images Folder:** Stores supporting visuals for documentation.
