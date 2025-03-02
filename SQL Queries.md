@@ -3,8 +3,7 @@
 This document contains SQL queries answering three questions about Fetch data - two closed-ended questions and one open-ended question.
 
 ## Data Distribution Context
-
-![User Age Distribution](https://i.imgur.com/your-image-url.jpg)
+<img src="Images/Age_distribution.png?raw=true" alt="User Age Distribution" width="600"/>
 
 *The chart shows the age distribution of users, with the 21-30 age group being the largest at 26.21% of the user base. Other notable groups include 41-50, 31-40, 51-60, with the 71-80 age group representing only 2.70% of users.*
 
