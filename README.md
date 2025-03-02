@@ -1,6 +1,6 @@
 # Fetch Rewards Data Analysis
 
-This repository contains the analysis and insights for the Fetch Rewards Data Analyst Take-Home Challenge. The structure follows a logical progression from data exploration to analysis and stakeholder communication.
+This repository contains the analysis and insights for the Fetch Rewards Data Analyst Take-Home Challenge.
 
 ## Repository Structure
 
